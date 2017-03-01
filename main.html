@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>복불복권</title>
+<link rel="stylesheet" type="text/css" href="css/bootstrap/bootstrap.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/font-awesome-4.7.0/css/font-awesome.min.css"/>
+<style type="text/css">
+*{ position: relative; }
+body{ margin: 0px; padding: 0px; overflow-x: hidden; font-family: sans-serif; }
+
+.navi{ position: fixed; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; width: 100%; height: 50px; text-align: center; font-weight: bold; }
+.navi_item{ display: inline-block; padding: 15px 20px 0px 20px; font-size: 14px; height: 50px; cursor: pointer; margin: 0px 20px 0px 20px; color: white; }
+.navi_item:hover{ background-color: rgba(200, 200, 200, 1); color: black; }
+.navi .active{ background-color: rgba(255,255,255,1); color: black; }
+
+.container-fluid{ position: relative; background-color: white; padding: 0px; }
+.main_carousel{ position: relative; }
+.carusel_img{ width: 100%; background-size: 100%; background-repeat: no-repeat; }
+
+.buy_inp{ border-radius: 500px; height: 100px; width: 100px; background-color: white; text-align: center; cursor: pointer; }
+.buy_inp:hover{ background-color: black; color: white; }
+.buy_btn{ cursor: pointer; color: white; font-weight: bold; border-radius: 50px; height: 500px; width: 100%; background-color: black; text-align: center; font-size: 150px; display: inline-block; }
+.buy_btn:hover{ background-color: #616161; }
+.rebuy_btn{ position: absolute; padding: 2px 5px 2px 5px; background-color: black; color: white; left: 12px; top: 7px; z-index: 3; border-radius: 25px; cursor: pointer; }
+.rebuy_btn:hover{ background-color: #616161; }
+
+.lottery_canvas{ cursor: url(img/coin.png) 20 20, auto; }
+</style>
+<script type="text/javascript" src="js/jquery/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script type="text/javascript" src="js/bootstrap/bootstrap.min.js"></script>
+<script type="text/javascript">
+$(function ready(){
+	
+	var Gval = {
+			autoScrolling: false,
+			mousedown: null,
+			ccanvas: $("#lottery_canvas_cover")[0],
+			cctx: $("#lottery_canvas_cover")[0].getContext("2d"),
+			rcanvas: $("#lottery_canvas_result")[0],
+			rctx: $("#lottery_canvas_result")[0].getContext("2d"),
+			rotteryTicketCover: (function(){
+				var image = new Image();
+				image.src = "img/rottery_ticket_cover.png";
+				return image;
+			})(),
+			rotteryResultBg: (function(){
+				var image = new Image();
+				image.src = "img/result_bg.png";
+				return image;
+			})()
+	};
+	
+	// 크기 설정
+	$(window).resize(function(){
+		// 1page
+		var wHeight = window.innerHeight;
+		$(".carousel_img").height( wHeight );
+		$(".page").height( wHeight );
+		
+		// 2page
+		var $page2 = $(".page2");
+		$page2.css("margin-top", wHeight / 2 - $page2.height() / 2 );
+		
+	}).trigger("resize");
+	
+	// 선택 불가
+	$("body").on("selectstart", function(){
+		return false;
+	});
+	
+	// 위치 이동
+	$(".navi_item").click(function(){
+		var index = $(".navi_item").index( this );
+		var $page = $(".page");
+		var $thisPage = $page.eq( index );
+		var scrollTop = $thisPage.offset().top;
+		
+		Gval.autoScrolling = true;
+		$("body").stop().animate({scrollTop: scrollTop}, 500, function(){
+			Gval.autoScrolling = false;
+		});
+		$(".navi_item").eq( index ).addClass("active").siblings().removeClass("active");
+	});
+	
+	// 스크롤 이벤트
+	$(window).scroll(function(){
+		// 네비 활성화 버튼 변경
+		var wHeight = window.innerHeight;
+		var scrollTop = $("body").scrollTop();
+		var pageIndex = parseInt( scrollTop / wHeight );
+		if( Gval.autoScrolling === false ){
+			$(".navi_item").eq( pageIndex ).addClass("active").siblings().removeClass("active");
+		}
+	});
+	
+	// 항목 추가
+	$("#item_inp").keypress(function(e){
+		if( e.keyCode === 13 ){
+			var $this = $(this);
+			var itemName = $this.val();
+			var $itemTag = $("#template").find(".list-group-item").clone();
+			$itemTag.find(".list-group-item-heading").text( itemName );
+			$("#item_list").prepend( $itemTag );
+			$this.val("");
+		}
+	});
+	
+	// 항목 삭제
+	$("#item_list").on("click", ".item_del_btn", function(){
+		$(this).closest(".list-group-item").remove();
+	});
+	
+	// 갯수 추가
+	$("#buy_plus_btn").click(function(){
+		var $buyLottery = $("#buy_lottery");
+		var buyCnt = parseInt( $buyLottery.text() );
+		$buyLottery.text( ++buyCnt );
+	});
+
+	// 갯수 삭제
+	$("#buy_minus_btn").click(function(){
+		var $buyLottery = $("#buy_lottery");
+		var buyCnt = parseInt( $buyLottery.text() );
+		buyCnt--;
+		if( buyCnt === 0 ){
+			buyCnt = 1;
+		}
+		$buyLottery.text( buyCnt );
+	});
+	
+	// 복권 사기
+	$("#buy_btn,#rebuy_btn").click(function(){
+		var items = [];
+		var cnt = parseInt( $("#buy_lottery").text() );
+		$("#item_list .list-group-item-heading").each(function(){
+			items.push( $(this).text() );
+		});
+		if( items.length === 0 ){
+			$("#alarm_pop").fadeIn(500);
+			$("#navi .navi_item").eq(1).click();
+			return;
+		}
+		
+		if( $("#lottery_ticket_div").is(":visible") === false ){
+			$("#buy_btn").fadeOut(250, function(){
+				$("#lottery_ticket_div").fadeIn( 250 );
+			});
+		}else{
+			$("#lottery_ticket_div").hide().fadeIn( 250 );
+		}
+		
+		var fontSize = 30;
+		Gval.rctx.font = fontSize + "px Arial";
+		Gval.rctx.textAlign = "center";
+		Gval.rctx.textBaseline = "middle";
+		Gval.cctx.drawImage( Gval.rotteryTicketCover, 0, 0, Gval.ccanvas.width, Gval.ccanvas.height );
+		Gval.rctx.drawImage( Gval.rotteryResultBg, 0, 0, Gval.ccanvas.width, Gval.ccanvas.height );
+		
+		var resultText = "";
+		var itemsClone = items.slice();
+		var maxWidth = Gval.rcanvas.width - 40;
+		var textLines = [];
+		
+		// 텍스트 정보 만들기
+		for(var i=0; i<cnt; ++i){
+			var randomNo = Math.floor( Math.random() * itemsClone.length );
+			var nowText = itemsClone.splice( randomNo, 1 ) + " ";
+			var tempText =  resultText + nowText;
+			var textWidth = Gval.rctx.measureText( tempText ).width;
+			if( maxWidth < textWidth ){
+				textLines.push( resultText );
+				resultText = nowText;
+			}else{
+				resultText = tempText;
+			}
+			if( itemsClone.length === 0 ){
+				itemsClone = items.slice();
+			}
+		}
+
+		// 마지막 텍스트 추가, 마지막 텍스트 콤마 제거
+		textLines.push( resultText.slice(0,-1) );
+		
+		// 그리기
+		var textCnt = 0;
+		for(var i=0; i<textLines.length; ++i){
+			if( i % 2 === 0 ){
+				Gval.rctx.fillText(textLines[i], Gval.rcanvas.width / 2, Gval.rcanvas.height / 2 + textCnt * fontSize);
+				textCnt++;
+			}else{
+				Gval.rctx.fillText(textLines[i], Gval.rcanvas.width / 2, Gval.rcanvas.height / 2 - textCnt * fontSize);
+			}
+		}
+	});
+	
+	// 알람창 버튼 클릭
+	$("#alarm_btn").click(function(){
+		$("#alarm_pop").fadeOut(250);
+	});
+
+	$(Gval.ccanvas).mousedown(function(e){
+		Gval.mousedown = e.button;
+	}).mouseup(function(){
+		Gval.mousedown = null;
+	}).mousemove(function(e){
+		if( Gval.mousedown === 0 ){
+			var top = e.pageY - $(this).offset().top;
+			var left = e.pageX - $(this).offset().left;
+			Gval.cctx.clearRect(left - 10, top - 10, 20, 20);
+		}
+	});
+	
+});
+</script>
+</head>
+<body>
+
+<!-- 네비게이션 헤더 -->
+<nav id="navi" class="navi">
+	<div class="navi_item active">home</div>
+	<div class="navi_item">choose</div>
+	<div class="navi_item">count</div>
+	<div class="navi_item">buy</div>
+</nav>
+
+<!-- 알림창 -->
+<div id="alarm_pop" style="position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; background-color: rgba(0,0,0,0.2); z-index: 9999; display: none;">
+<div style="position: absolute; width: 300px; height: 100px; left: calc(50% - 150px); top: calc(50% - 100px); z-index: 9999;">
+	<div class="fade_div panel panel-warning">
+	  	<div class="panel-heading">alarm</div>
+	  	<div class="panel-body">
+	  		<div style="text-align: center;">
+	    		More than one item is required.
+	    	</div>
+	    	<button type="button" id="alarm_btn" class="btn btn-warning btn-block" style="margin-top: 20px;">
+			  ok
+			</button>
+ 		</div>
+	</div>
+</div>
+</div>
+
+<div class="row">
+
+<!-- home -->
+<div class="col-md-12">
+<div class="page container-fluid">
+
+	<div id="main_carousel" class="carousel slide main_carousel" data-ride="carousel" data-interval="2000">
+	  <!-- Indicators -->
+	  <ol class="carousel-indicators">
+	    <li data-target="#main_carousel" data-slide-to="0" class="active"></li>
+	    <li data-target="#main_carousel" data-slide-to="1"></li>
+	    <li data-target="#main_carousel" data-slide-to="2"></li>
+	  </ol>
+	  <!-- Wrapper for slides -->
+	  <div class="carousel-inner" role="listbox">
+	    <div class="item active">
+	      <div class="carousel_img" style="background-image: url('img/main2.jpg');"></div>
+	    </div>
+	    <div class="item">
+	      <div class="carousel_img" style="background-image: url('img/main.jpg');"></div>
+	    </div>
+	    <div class="item">
+	      <div class="carousel_img" style="background-image: url('img/main3.jpg');"></div>
+	    </div>
+	  </div>
+	</div>
+	
+</div>
+</div>
+
+<!-- Choose -->
+<div class="col-md-12">
+<div class="page container">
+	<div class="col-md-4 col-md-offset-4">
+		<div style="margin: 150px 0px 20px 0px; font-family: sans-serif; font-weight: bold; font-size: 45px;">
+			Choose
+		</div>
+		<div class="fade_div panel panel-default">
+		  	<div class="panel-heading">prize list</div>
+		  	<div class="panel-body">
+		    	<div id="item_list" class="list-group" style="height: 500px; overflow: auto;">
+				</div>
+				<input id="item_inp" type="text" class="form-control" placeholder="Press the Enter key to enter the prize."/>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+
+<!-- Count -->
+<div class="col-md-12" style="background-color: #616161;">
+<div class="page container">
+	<div class="col-md-8 col-md-offset-2">
+		<div style="margin: 200px 0px 20px 0px; font-family: sans-serif; font-weight: bold; font-size: 45px; color: white;">
+			Count
+		</div>
+		<div class="fade_div" style="margin-top: 50px;">
+			<div id="buy_minus_btn" class="buy_inp col-md-2" style="margin-top: 150px;">
+				<i class="fa fa-minus fa-2x" aria-hidden="true" style="margin-top: 38px;"></i>
+			</div>
+			<div  class="col-md-8" style="border-radius: 500px; height: 500px; background-color: white; text-align: center; font-size: 150px;">
+				<div id="buy_lottery" style="margin-top: 130px; cursor: default;">
+					1
+				</div>
+			</div>
+			<div id="buy_plus_btn" class="buy_inp col-md-2" style="margin-top: 250px;">
+				<i class="fa fa-plus fa-2x" aria-hidden="true" style="margin-top: 38px;"></i>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+
+
+<!-- buy -->
+<div class="col-md-12">
+<div class="page container-fluid">
+	<div class="col-md-4 col-md-offset-4">
+		<div class="fade_div" style="margin-top: 250px; text-align: center;">
+			<div id="buy_btn" class="buy_btn">
+				<div style="margin-top: 130px;">
+					buy
+				</div>
+			</div>
+			<div id="lottery_ticket_div" style="text-align: center; display: none;">
+				<div style="height: 400px; width: 500px; background-image: url('img/rottery_ticket.png'); background-size: 100% 100%; background-repeat: no-repeat; display: inline-block;">
+					<div id="rebuy_btn" class="rebuy_btn">
+						buy again
+					</div>
+					<canvas id="lottery_canvas_cover" class="lottery_canvas" width="238" height="315" style="position: absolute; left: 192px; top: 25px; z-index: 2"></canvas>
+					<canvas id="lottery_canvas_result" class="lottery_canvas" width="238" height="315" style="position: absolute; left: 192px; top: 25px; z-index: 1"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+
+<footer style="position: absolute; height: 60px; background-color: #616161; width: 100%; top: calc(100% - 60px);">
+	<div style="margin: 20px;">
+		<span class="label label-default" style="background-color: white; color: #616161">jquery</span>
+		<span class="label label-default" style="background-color: white; color: #616161">bootstrap</span>
+		<span class="label label-default" style="background-color: white; color: #616161">fontawesome</span>
+	</div>
+</footer>
+
+</div>
+<!-- template -->
+<div id="template" style="display: none;">
+
+<div class="list-group-item" style="position: relative; cursor: default;">
+  <h4 class="list-group-item-heading">List group item heading</h4>
+  <i class="item_del_btn fa fa-times" aria-hidden="true" style="position: absolute; right: 20px; top: calc(50% - 7px); cursor: pointer;"></i>
+</div>
+
+</div>
+</body>
+</html>
