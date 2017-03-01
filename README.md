@@ -1,2 +1,2 @@
 # pachinko
-https://zzinpan.github.io/pachinko/main.html
+https://zzinpan.github.io/LotteryTicket/main.html
