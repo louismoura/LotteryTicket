@@ -29,6 +29,7 @@ body{ margin: 0px; padding: 0px; overflow-x: hidden; font-family: sans-serif; }
 </style>
 <script type="text/javascript" src="js/jquery/jquery-3.1.1.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script type="text/javascript" src="js/jquery-mousewheel/jquery.mousewheel.min.js"></script>
 <script type="text/javascript" src="js/bootstrap/bootstrap.min.js"></script>
 <script type="text/javascript">
 $(function ready(){
@@ -89,6 +90,9 @@ $(function ready(){
 		// 네비 활성화 버튼 변경
 		var wHeight = window.innerHeight;
 		var scrollTop = $("body").scrollTop();
+		if( scrollTop === 0 ){
+			scrollTop = $("html").scrollTop();
+		}
 		var pageIndex = parseInt( scrollTop / wHeight );
 		if( Gval.autoScrolling === false ){
 			$(".navi_item").eq( pageIndex ).addClass("active").siblings().removeClass("active");
