@@ -79,7 +79,7 @@ $(function ready(){
 		var scrollTop = $thisPage.offset().top;
 		
 		Gval.autoScrolling = true;
-		$("body").stop().animate({scrollTop: scrollTop}, 500, function(){
+		$("body,html").stop().animate({scrollTop: scrollTop}, 500, function(){
 			Gval.autoScrolling = false;
 		});
 		$(".navi_item").eq( index ).addClass("active").siblings().removeClass("active");
