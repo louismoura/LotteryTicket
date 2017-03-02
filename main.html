@@ -7,7 +7,7 @@
 <link rel="stylesheet" type="text/css" href="css/font-awesome-4.7.0/css/font-awesome.min.css"/>
 <style type="text/css">
 *{ position: relative; }
-body{ margin: 0px; padding: 0px; overflow-x: hidden; font-family: sans-serif; }
+body{ margin: 0px; padding: 0px; overflow: hidden; font-family: sans-serif; }
 
 .navi{ position: fixed; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; width: 100%; height: 50px; text-align: center; font-weight: bold; }
 .navi_item{ display: inline-block; padding: 15px 20px 0px 20px; font-size: 14px; height: 50px; cursor: pointer; margin: 0px 20px 0px 20px; color: white; }
@@ -82,21 +82,38 @@ $(function ready(){
 		$("body,html").stop().animate({scrollTop: scrollTop}, 500, function(){
 			Gval.autoScrolling = false;
 		});
-		$(".navi_item").eq( index ).addClass("active").siblings().removeClass("active");
+		
+	});
+
+	$("body,html").mousewheel(function(e){
+		e.preventDefault();
+		if( Gval.autoScrolling ){
+			return;
+		}
+		var $naviItem = $(".navi_item");
+		var index = $naviItem.index( $(".navi_item.active") );
+		if( e.originalEvent.wheelDelta < 0 ){
+			$(".navi_item").eq( index+1 ).addClass("active").siblings().removeClass("active");
+			$naviItem.eq( index+1 ).trigger("click");
+		}else{
+			$(".navi_item").eq( index-1 ).addClass("active").siblings().removeClass("active");
+			$naviItem.eq( index-1 ).trigger("click");
+		}
 	});
 	
 	// 스크롤 이벤트
 	$(window).scroll(function(){
-		// 네비 활성화 버튼 변경
-		var wHeight = window.innerHeight;
-		var scrollTop = $("body").scrollTop();
-		if( scrollTop === 0 ){
-			scrollTop = $("html").scrollTop();
-		}
-		var pageIndex = parseInt( scrollTop / wHeight );
-		if( Gval.autoScrolling === false ){
-			$(".navi_item").eq( pageIndex ).addClass("active").siblings().removeClass("active");
-		}
+
+// 		// 네비 활성화 버튼 변경
+// 		var wHeight = window.innerHeight;
+// 		var scrollTop = $("body").scrollTop();
+// 		if( scrollTop === 0 ){
+// 			scrollTop = $("html").scrollTop();
+// 		}
+// 		var pageIndex = parseInt( scrollTop / wHeight );
+// 		if( Gval.autoScrolling === false ){
+// 			$(".navi_item").eq( pageIndex ).addClass("active").siblings().removeClass("active");
+// 		}
 	});
 	
 	// 항목 추가
