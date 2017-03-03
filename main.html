@@ -57,8 +57,9 @@ $(function ready(){
 	$(window).resize(function(){
 		// 1page
 		var wHeight = window.innerHeight;
+		var wWidth = window.innerWidth;
 		$(".carousel_img").height( wHeight );
-		$(".page").height( wHeight );
+		$(".page").height( wHeight ).width( wWidth );
 		
 		// 2page
 		var $page2 = $(".page2");
@@ -77,6 +78,7 @@ $(function ready(){
 		var $page = $(".page");
 		var $thisPage = $page.eq( index );
 		var scrollTop = $thisPage.offset().top;
+		$(".navi_item").eq( index ).addClass("active").siblings().removeClass("active");
 		
 		Gval.autoScrolling = true;
 		$("body,html").stop().animate({scrollTop: scrollTop}, 500, function(){
@@ -92,11 +94,9 @@ $(function ready(){
 		}
 		var $naviItem = $(".navi_item");
 		var index = $naviItem.index( $(".navi_item.active") );
-		if( e.originalEvent.wheelDelta < 0 ){
-			$(".navi_item").eq( index+1 ).addClass("active").siblings().removeClass("active");
+		if( e.deltaY < 0 ){
 			$naviItem.eq( index+1 ).trigger("click");
 		}else{
-			$(".navi_item").eq( index-1 ).addClass("active").siblings().removeClass("active");
 			$naviItem.eq( index-1 ).trigger("click");
 		}
 	});
@@ -296,14 +296,14 @@ $(function ready(){
 <!-- Choose -->
 <div class="col-md-12">
 <div class="page container">
-	<div class="col-md-4 col-md-offset-4">
-		<div style="margin: 150px 0px 20px 0px; font-family: sans-serif; font-weight: bold; font-size: 45px;">
+	<div class="col-md-4 col-md-offset-4" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; margin: auto; width: 300px; height: 500px;">
+		<div style="font-family: sans-serif; font-weight: bold; font-size: 45px; margin-top: 50px 0px 20px 0px;">
 			Choose
 		</div>
 		<div class="fade_div panel panel-default">
 		  	<div class="panel-heading">prize list</div>
 		  	<div class="panel-body">
-		    	<div id="item_list" class="list-group" style="height: 500px; overflow: auto;">
+		    	<div id="item_list" class="list-group" style="height: 300px; overflow: auto;">
 				</div>
 				<input id="item_inp" type="text" class="form-control" placeholder="Press the Enter key to enter the prize."/>
 			</div>
@@ -315,8 +315,8 @@ $(function ready(){
 <!-- Count -->
 <div class="col-md-12" style="background-color: #616161;">
 <div class="page container">
-	<div class="col-md-8 col-md-offset-2">
-		<div style="margin: 200px 0px 20px 0px; font-family: sans-serif; font-weight: bold; font-size: 45px; color: white;">
+	<div class="col-md-8 col-md-offset-2" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; margin: auto; width: 700px; height: 700px;">
+		<div style="font-family: sans-serif; font-weight: bold; font-size: 45px; color: white; margin-top: 20px;">
 			Count
 		</div>
 		<div class="fade_div" style="margin-top: 50px;">
@@ -340,9 +340,9 @@ $(function ready(){
 <!-- buy -->
 <div class="col-md-12">
 <div class="page container-fluid">
-	<div class="col-md-4 col-md-offset-4">
-		<div class="fade_div" style="margin-top: 250px; text-align: center;">
-			<div id="buy_btn" class="buy_btn">
+	<div class="col-md-4 col-md-offset-4" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; margin: auto; width: 500px; height: 500px;">
+		<div class="fade_div" style="text-align: center;">
+			<div id="buy_btn" class="buy_btn" style="">
 				<div style="margin-top: 130px;">
 					buy
 				</div>
